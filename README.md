@@ -1,3 +1,5 @@
+
+
 # FAN-CTRL: Web Edition
 
 Turn your pain cave fan into a smart fan you can control from your phone.
@@ -7,6 +9,8 @@ An ESP32 reads your Bluetooth heart rate strap and switches your fan between Low
 This is a fork of [fan-ctrl by Andrew Grabbs](https://github.com/agrabbs/fan-ctrl). His original build and video are here: [DIY KICKR Headwind (Smart Fan)](https://www.andrewgrabbs.com/interests/cycling/diy-kickr-headwind-smart-fan/). All credit for the original idea and hardware design goes to him.
 
 <!-- Add photos here: the web app on your phone, the LCD, and the finished box -->
+<img width="3072" height="4080" alt="PXL_20261004_034333836" src="https://github.com/user-attachments/assets/40f33698-d041-4620-8a54-516aca40e92a" />
+<img width="1007" height="1712" alt="Screenshot_20261003-224518" src="https://github.com/user-attachments/assets/6970c87a-cde8-4078-9456-07de11223d1c" />
 
 ## What's new in this fork
 
