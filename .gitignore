@@ -1,0 +1,9 @@
+# Your WiFi name and password. Never commit this.
+secrets.h
+
+# Arduino and OS clutter
+build/
+*.bin
+*.elf
+.DS_Store
+Thumbs.db

@@ -1,78 +1,122 @@
-# FAN-CTRL
-<a href="https://www.buymeacoffee.com/andrewgrabbs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy Andrew a croissant&emoji=🥐&slug=andrewgrabbs&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>
+# FAN-CTRL: Web Edition
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+Turn your pain cave fan into a smart fan you can control from your phone.
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+An ESP32 reads your Bluetooth heart rate strap and switches your fan between Low, Medium, and High. A built-in web app lets you pick the mode, set speeds by hand, and tune your heart rate zones without re-uploading code. An optional 16x2 LCD shows heart rate, fan speed, and the web address.
 
-Control most fan's speed with ESP32  and a relay. 
-YouTube Video: https://www.youtube.com/watch?v=6tJlJQgutkI
+This is a fork of [fan-ctrl by Andrew Grabbs](https://github.com/agrabbs/fan-ctrl). His original build and video are here: [DIY KICKR Headwind (Smart Fan)](https://www.andrewgrabbs.com/interests/cycling/diy-kickr-headwind-smart-fan/). All credit for the original idea and hardware design goes to him.
 
-<!-- GETTING STARTED -->
-## Getting Started
+<!-- Add photos here: the web app on your phone, the LCD, and the finished box -->
 
-Placeholder
+## What's new in this fork
 
-### Prerequisites
+- **Web control app.** Open it on any phone or computer on your WiFi.
+  - **Off:** fan off
+  - **Heart rate:** fan follows your heart rate zones
+  - **Manual:** pick Low, Medium, or High
+- **Zone editor in the app.** Set the bpm where each speed kicks in.
+- **Settings survive a power cycle.** Mode and zones are saved on the ESP32.
+- **15 second delay before slowing down.** Speeds up right away, but won't flick back and forth when you hover near a zone line. The app and LCD show a countdown.
+- **Break before make switching.** All relays drop out for a moment before the new speed turns on, so two speed windings are never powered at once.
+- **Optional daisy chain (interlock) wiring mode.** Hardware protection for the fan motor. See below.
+- **I2C LCD support.** Address is detected automatically. Runs fine without a screen.
+- **Auto reconnect** if the strap drops out. Fan turns off if heart rate stops for 10 seconds.
+- **Optional strap lock.** Lock the fan to one strap so a second strap in the room can't grab it.
 
-This is what you'll need for this project
-* <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a>
-* <a href="https://amzn.to/3NBRKF2" target="_blank">ESP32 Device</a>
-* <a href="https://amzn.to/47eZdRr" target="_blank">USB Cable</a>
-* <a href="https://amzn.to/3NFXoWy" target="_blank">Heart Rate Strap</a>
+## Parts
 
-### Installation
+- ESP32 dev board (ESP-WROOM-32 DevKit)
+- 3 or 4 channel 5V relay board
+- Bluetooth heart rate strap (tested with Garmin HRM-Pro Plus)
+- Multi-speed fan (3 speeds)
+- Jumper wires and a micro USB cable that carries data
+- Optional: 16x2 LCD with I2C backpack
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/6tJlJQgutkI/0.jpg)](https://www.youtube.com/watch?v=6tJlJQgutkI)
+## Wiring
 
-1. 
+### Relays
 
+| ESP32 | Relay board |
+|---|---|
+| D25 | IN1 (Low) |
+| D26 | IN2 (Medium) |
+| D27 | IN3 (High) |
+| VIN (5V) | VCC |
+| GND | GND |
 
-<!-- USAGE EXAMPLES -->
-## Usage
+Pins can be changed in `RELAY_PINS` at the top of the sketch.
 
-placeholder
+### LCD (optional)
 
-<!-- ROADMAP -->
-## Roadmap
+| ESP32 | LCD I2C backpack |
+|---|---|
+| D21 | SDA |
+| D22 | SCL |
+| VIN (5V) | VCC |
+| GND | GND |
 
-- [x] Update script for v1.5
-- [ ] Update README.md
-- [ ] Add Changelog
+### Fan wiring: safer daisy chain option
 
-See the [open issues](https://github.com/agrabbs/hrm_fan_control/issues) for a full list of proposed features (and known issues).
+> **Warning:** This involves mains voltage. Unplug the fan before working on it. If you're not comfortable with mains wiring, get help.
 
-<!-- CONTRIBUTING -->
-## Contributing
+The original design uses one relay per speed. If two relays are ever on at once, two motor windings get power together, which is hard on the motor. This sketch switches in a safe order to avoid that. You can also make it impossible in hardware with a daisy chain, suggested by a commenter on Andrew's original post:
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+- Line in to **Relay 1 COM**. Leave Relay 1 NC open.
+- **Relay 1 NO** to **Relay 2 COM**.
+- **Relay 2 NC** to fan **Low**. **Relay 2 NO** to **Relay 3 COM**.
+- **Relay 3 NC** to fan **Medium**. **Relay 3 NO** to fan **High**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+Relay 1 is on/off. Relay 2 picks Low or "faster." Relay 3 picks Medium or High. Only one speed wire can ever be live.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+If you wire it this way, set `INTERLOCK_WIRING = true` in the sketch.
 
-<!-- LICENSE -->
+## Setup
+
+1. **Install Arduino IDE** and add the **esp32 by Espressif** board package.
+2. **Install the LCD library:** Sketch > Include Library > Manage Libraries, search **LiquidCrystal I2C**, and install the one by **Frank de Brabander**. A warning about ESP32 compatibility is normal. It works.
+3. **Add your WiFi:** copy `secrets.example.h` to `secrets.h` in the same folder and fill in your network name and password. The ESP32 only connects to **2.4 GHz** WiFi.
+4. **Board settings:**
+   - Tools > Board: **ESP32 Dev Module**
+   - Tools > Partition Scheme: **Huge APP (3MB No OTA/1MB SPIFFS)**. Bluetooth plus WiFi won't fit in the default.
+5. **Upload.** If it hangs at "Connecting...", hold the **BOOT** button until the upload starts.
+6. **Find the address:** open Serial Monitor at **115200** baud and press **EN**. It prints the control panel address. The LCD also shows it.
+
+### Settings at the top of the sketch
+
+| Setting | What it does |
+|---|---|
+| `RELAY_PINS` | GPIO pins for Low, Medium, High |
+| `RELAY_ACTIVE_LOW` | `true` for most relay boards. Set `false` if the fan runs when the app says Off. |
+| `INTERLOCK_WIRING` | `true` if you used the daisy chain wiring |
+| `HRM_ADDRESS` | Optional. Lock to one strap, e.g. `"aa:bb:cc:dd:ee:ff"`. Leave `""` to use any strap. |
+| `LCD_SDA`, `LCD_SCL` | I2C pins for the screen |
+| `STEP_DOWN_DELAY_MS` | How long to wait before slowing the fan |
+| `HR_TIMEOUT_MS` | How long without heart rate before the fan turns off |
+
+## Using it
+
+- Open **http://fan.local** on a computer, or the IP address from Serial Monitor.
+- **Android phones** often can't open `.local` addresses. Use the IP instead, like `http://192.168.0.138`, then add it to your home screen.
+- **Keep the IP from changing:** set a DHCP reservation for the ESP32 in your router. It shows up as **fan-control**.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| No COM port in Arduino IDE | Try a different USB cable (many are charge only). On Windows, install the Silicon Labs CP210x driver. |
+| Garbled text in Serial Monitor | Set the baud rate to 115200. |
+| "Sketch too big" | Set Partition Scheme to Huge APP. |
+| Strap never connects | Close Zwift and other apps that may hold the strap's Bluetooth connection. Many straps only allow one or two. Most also broadcast ANT+, so Zwift can use an ANT+ dongle instead. |
+| Speeds in the wrong order | Swap the numbers in `RELAY_PINS`. |
+| Fan does the opposite of the app | Change `RELAY_ACTIVE_LOW`. |
+| LCD lit but blank | Turn the contrast knob on the back of the LCD. |
+| "No LCD found" | Check SDA and SCL wiring, or change `LCD_SDA` and `LCD_SCL`. |
+
+## Credits
+
+- **Andrew Grabbs:** original fan-ctrl concept, code, and hardware design. [GitHub](https://github.com/agrabbs) and [website](https://www.andrewgrabbs.com).
+- **Tyler Dale:** web control app, LCD support, zone editor, saved settings, and switching improvements.
+
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<!-- CONTACT -->
-## Contact
-
-Andrew Grabbs - [website](https://www.andrewgrabbs.com) - agrabbs@gmail.com
-
-Project Link: [https://github.com/agrabbs/hrm_fan_control](https://github.com/agrabbs/hrm_fan_control)
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-placeholder
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+MIT. See [LICENSE](LICENSE).
