@@ -119,7 +119,7 @@ If you wire it this way, set `INTERLOCK_WIRING = true` in the sketch.
 ## Credits
 
 - **Andrew Grabbs:** original fan-ctrl concept, code, and hardware design. [GitHub](https://github.com/agrabbs) and [website](https://www.andrewgrabbs.com).
-- **Tyler Dale:** web control app, LCD support, zone editor, saved settings, and switching improvements.
+
 
 ## License
 
